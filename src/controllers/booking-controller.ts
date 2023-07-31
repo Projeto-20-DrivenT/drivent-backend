@@ -2,6 +2,7 @@ import { AuthenticatedRequest } from "@/middlewares";
 import { Response } from "express";
 import httpStatus from "http-status";
 import bookingService from "@/services/booking-service";
+import { Room } from "@prisma/client";
 
 export async function listBooking(req: AuthenticatedRequest, res: Response) {
   try {
@@ -11,6 +12,23 @@ export async function listBooking(req: AuthenticatedRequest, res: Response) {
       id: booking.id,
       Room: booking.Room,
     });
+  } catch (error) {
+    return res.sendStatus(httpStatus.NOT_FOUND);
+  }
+}
+
+export async function listBookingByRoomId(req: AuthenticatedRequest, res: Response) {
+
+  interface Booking {
+  id: number;
+  Room: Room;
+}
+
+  try {
+    const { roomId } = req.params;
+    const result = await bookingService.getBookingsByRoomId(+roomId);
+    const bookings: Booking[] = result.map((booking) => ({ id: booking.id, Room: booking.Room }));
+    return res.status(httpStatus.OK).send(bookings);
   } catch (error) {
     return res.sendStatus(httpStatus.NOT_FOUND);
   }
