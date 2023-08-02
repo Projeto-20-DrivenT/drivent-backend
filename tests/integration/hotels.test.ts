@@ -19,6 +19,7 @@ import {
   createRoomWithHotelId,
 } from "../factories";
 import { cleanDb, generateValidToken } from "../helpers";
+import redis from "@/config/redis";
 
 beforeAll(async () => {
   await init();
@@ -26,6 +27,9 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await cleanDb();
+  await redis.connect();
+  await redis.flushDb();
+  await redis.quit();
 });
 
 const server = supertest(app);
