@@ -46,22 +46,17 @@ async function getHotelsWithRooms(userId: number, hotelId: number) {
 
   const hotelKey = `hotelId=${hotelId}`;
 
-  let hotels: Hotel & { Rooms: Room[] } | null = null;
-  try {
-    const result = await redisClient.get(hotelKey);
-    if (result) {
-      hotels = JSON.parse(result);
-    } else {
-      hotels = await hotelRepository.findRoomsByHotelId(hotelId);
-      if (!hotels) {
-        throw notFoundError();
-      }
-      await redisClient.setEx(hotelKey, DEFAULT_EXP, JSON.stringify(hotels));
+  let hotels: (Hotel & { Rooms: Room[] }) | null = null;
+  const result = await redisClient.get(hotelKey);
+  if (result) {
+    hotels = JSON.parse(result);
+  } else {
+    hotels = await hotelRepository.findRoomsByHotelId(hotelId);
+    if (!hotels) {
+      throw notFoundError();
     }
-  } catch (error) {
-    throw error;
+    await redisClient.setEx(hotelKey, DEFAULT_EXP, JSON.stringify(hotels));
   }
-
   return hotels;
 }
 
