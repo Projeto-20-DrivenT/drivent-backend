@@ -3,7 +3,8 @@ import enrollmentRepository from "@/repositories/enrollment-repository";
 import ticketRepository from "@/repositories/ticket-repository";
 import { notFoundError } from "@/errors";
 import { cannotListHotelsError } from "@/errors/cannot-list-hotels-error";
-import redis, { DEFAULT_EXP } from "@/config/redis";
+import { redisClient, DEFAULT_EXP } from "@/config/redis";
+
 import { Hotel, Room } from "@prisma/client";
 
 async function listHotels(userId: number) {
@@ -24,21 +25,19 @@ async function getHotels(userId: number) {
   await listHotels(userId);
 
   const hotelsKey = "hotels";
-  await redis.connect();
 
   let hotels: Hotel[];
-  const result = await redis.get(hotelsKey);
-  if (result) hotels = JSON.parse(result);
-  else {
+  const result = await redisClient.get(hotelsKey);
+  if (result) {
+    hotels = JSON.parse(result);
+  } else {
     hotels = await hotelRepository.findHotels();
     if (!hotels) {
-      await redis.quit();
       throw notFoundError();
     }
-    await redis.setEx(hotelsKey, DEFAULT_EXP, JSON.stringify(hotels));
+    await redisClient.setEx(hotelsKey, DEFAULT_EXP, JSON.stringify(hotels));
   }
 
-  await redis.quit();
   return hotels;
 }
 
@@ -46,21 +45,23 @@ async function getHotelsWithRooms(userId: number, hotelId: number) {
   await listHotels(userId);
 
   const hotelKey = `hotelId=${hotelId}`;
-  await redis.connect();
 
-  let hotels: Hotel & { Rooms: Room[] };
-  const result = await redis.get(hotelKey);
-  if (result) hotels = JSON.parse(result);
-  else {
-    hotels = await hotelRepository.findRoomsByHotelId(hotelId);
-    if (!hotels) {
-      await redis.quit();
-      throw notFoundError();
+  let hotels: Hotel & { Rooms: Room[] } | null = null;
+  try {
+    const result = await redisClient.get(hotelKey);
+    if (result) {
+      hotels = JSON.parse(result);
+    } else {
+      hotels = await hotelRepository.findRoomsByHotelId(hotelId);
+      if (!hotels) {
+        throw notFoundError();
+      }
+      await redisClient.setEx(hotelKey, DEFAULT_EXP, JSON.stringify(hotels));
     }
-    await redis.setEx(hotelKey, DEFAULT_EXP, JSON.stringify(hotels));
+  } catch (error) {
+    throw error;
   }
 
-  await redis.quit();
   return hotels;
 }
 
