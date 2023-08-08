@@ -3,6 +3,7 @@ import enrollmentRepository from "@/repositories/enrollment-repository";
 import ticketRepository from "@/repositories/ticket-repository";
 import { notFoundError } from "@/errors";
 import { cannotListHotelsError } from "@/errors/cannot-list-hotels-error";
+// eslint-disable-next-line boundaries/element-types
 import { redisClient, DEFAULT_EXP } from "@/config/redis";
 
 import { Hotel, Room } from "@prisma/client";
@@ -47,6 +48,7 @@ async function getHotelsWithRooms(userId: number, hotelId: number) {
   const hotelKey = `hotelId=${hotelId}`;
 
   let hotels: Hotel & { Rooms: Room[] } | null = null;
+  // eslint-disable-next-line no-useless-catch
   try {
     const result = await redisClient.get(hotelKey);
     if (result) {

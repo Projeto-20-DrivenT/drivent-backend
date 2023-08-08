@@ -149,15 +149,22 @@ model Venues {
   Activity  Activity[]
 }
 
+model EventDates {
+  id       Int        @id @default(autoincrement())
+  date     DateTime
+  Activity Activity[]
+}
+
 model Activity {
   id           Int            @id @default(autoincrement())
   name         String
-  date         DateTime
   capacity     Int
   startTime    String
   endTime      String
-  Venues       Venues         @relation(fields: [venuesId], references: [id])
-  venuesId     Int
+  EventDate    EventDates     @relation(fields: [eventDateId], references: [id])
+  eventDateId  Int
+  Venues       Venues         @relation(fields: [venueId], references: [id])
+  venueId      Int
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   Registration Registration[]
