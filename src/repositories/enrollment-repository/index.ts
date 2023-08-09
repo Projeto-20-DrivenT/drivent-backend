@@ -30,7 +30,7 @@ async function upsert(
   });
 }
 
-async function findWithUserByuserId(userId: number){
+async function findWithUserByuserId(userId: number) {
   return prisma.enrollment.findFirst({
     where: { userId },
     include: {
