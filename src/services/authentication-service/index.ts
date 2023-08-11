@@ -5,6 +5,7 @@ import { User } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { invalidCredentialsError } from "./errors";
+import axios from "axios";
 
 async function signIn(params: SignInParams): Promise<SignInResult> {
   const { email, password } = params;
@@ -43,6 +44,41 @@ async function validatePasswordOrFail(password: string, userPassword: string) {
   if (!isPasswordValid) throw invalidCredentialsError();
 }
 
+async function githubSignIn(code: string){
+
+  const result = await axios.post("https://github.com/login/oauth/access_token",{
+    client_id: process.env.CLIENT_ID,
+    client_secret: process.env.CLIENT_SECRET,
+    code
+  }, {
+    headers: {Accept: 'application/json'}
+  })
+
+  const {data} = await axios.get("https://api.github.com/user",{
+    headers: {
+      Authorization: `Bearer ${result.data.access_token}`
+    }
+  })
+  
+  let user = await userRepository.findByEmail(data.email, { id: true, email: true});
+
+  if(!user){
+    user = await userRepository.create({
+      email: data.email,
+      password: jwt.sign({ email: data.email, id: data.id, token: result.data.access_token }, process.env.JWT_SECRET),
+    })
+
+    delete user.createdAt
+    delete user.updatedAt
+  }
+
+  const token = await createSession(user.id);
+  return {
+    user: exclude(user, "password"),
+    token
+  }
+}
+
 export type SignInParams = Pick<User, "email" | "password">;
 
 type SignInResult = {
@@ -54,6 +90,7 @@ type GetUserOrFailResult = Pick<User, "id" | "email" | "password">;
 
 const authenticationService = {
   signIn,
+  githubSignIn
 };
 
 export default authenticationService;
