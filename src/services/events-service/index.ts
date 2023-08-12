@@ -3,6 +3,7 @@ import eventRepository from "@/repositories/event-repository";
 import { exclude } from "@/utils/prisma-utils";
 import { Event } from "@prisma/client";
 import dayjs from "dayjs";
+// eslint-disable-next-line boundaries/element-types
 import { redisClient, DEFAULT_EXP } from "@/config/redis";
 
 async function getFirstEvent(): Promise<GetFirstEventResult> {

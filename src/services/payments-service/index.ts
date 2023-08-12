@@ -56,7 +56,7 @@ async function paymentConfimationEmail(userId: number, ticket: Ticket & { Ticket
   const enroll = await enrollmentRepository.findWithUserByuserId(userId);
 
   let text = `<h3>Prezado(a) ${enroll.name}</h3>, 
-  <p>É com grande satisfação que recebemos o seu pagamento 
+  <p>É com grande satisfação que recebemos o seu pagamento
   referente ao Ticket ${ticket.TicketType.name} do tipo ${ticket.TicketType.isRemote ? "remoto.</p>" : "presencial"}`;
 
   if (!ticket.TicketType.isRemote) {
