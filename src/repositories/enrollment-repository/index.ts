@@ -46,47 +46,45 @@ async function createOrUpdateEnrollmentAndAddress(
   createdEnrollment: CreateEnrollmentParams,
   createdAddress: CreateAddressParams,
 ) {
+  const enrollmentData = {
+    name: createdEnrollment.name,
+    cpf: createdEnrollment.cpf,
+    birthday: createdEnrollment.birthday,
+    phone: createdEnrollment.phone,
+    userId: createdEnrollment.userId,
+  };
+
+  const addressData = {
+    cep: createdAddress.cep,
+    street: createdAddress.street,
+    city: createdAddress.city,
+    state: createdAddress.state,
+    number: createdAddress.number,
+    neighborhood: createdAddress.neighborhood,
+    addressDetail: createdAddress.addressDetail,
+  };
+
   return await prisma.enrollment.upsert({
     where: {
       userId,
     },
     create: {
-      name: createdEnrollment.name,
-      cpf: createdEnrollment.cpf,
-      birthday: createdEnrollment.birthday,
-      phone: createdEnrollment.phone,
-      userId: createdEnrollment.userId,
+      ...enrollmentData,
       Address: {
         create: {
-          cep: createdAddress.cep,
-          street: createdAddress.street,
-          city: createdAddress.city,
-          state: createdAddress.state,
-          number: createdAddress.number,
-          neighborhood: createdAddress.neighborhood,
-          addressDetail: createdAddress.addressDetail,
+          ...addressData,
         },
       },
     },
     update: {
-      name: createdEnrollment.name,
-      cpf: createdEnrollment.cpf,
-      birthday: createdEnrollment.birthday,
-      phone: createdEnrollment.phone,
-      userId: createdEnrollment.userId,
+      ...enrollmentData,
       Address: {
         update: {
           where: {
             enrollmentId,
           },
           data: {
-            cep: createdAddress.cep,
-            street: createdAddress.street,
-            city: createdAddress.city,
-            state: createdAddress.state,
-            number: createdAddress.number,
-            neighborhood: createdAddress.neighborhood,
-            addressDetail: createdAddress.addressDetail,
+            ...addressData,
           },
         },
       },
