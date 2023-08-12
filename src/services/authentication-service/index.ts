@@ -60,12 +60,13 @@ async function githubSignIn(code: string){
     }
   })
   
-  let user = await userRepository.findByEmail(data.email, { id: true, email: true});
+  const email = data.email ? data.email : data.login
+  let user = await userRepository.findByEmail(email, { id: true, email: true});
 
   if(!user){
     user = await userRepository.create({
-      email: data.email,
-      password: jwt.sign({ email: data.email, id: data.id, token: result.data.access_token }, process.env.JWT_SECRET),
+      email,
+      password: jwt.sign({ email, id: data.id, token: result.data.access_token }, process.env.JWT_SECRET),
     })
 
     delete user.createdAt
