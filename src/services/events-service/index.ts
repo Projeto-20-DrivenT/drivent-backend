@@ -15,15 +15,13 @@ async function getFirstEvent(): Promise<GetFirstEventResult> {
   if (result) {
     event = JSON.parse(result);
   } else {
-
     event = await eventRepository.findFirst();
 
     if (!event) {
       throw notFoundError();
     }
 
-await redisClient.setEx(eventsKey, DEFAULT_EXP, JSON.stringify(event));
-
+    await redisClient.setEx(eventsKey, DEFAULT_EXP, JSON.stringify(event));
   }
 
   return exclude(event, "createdAt", "updatedAt");

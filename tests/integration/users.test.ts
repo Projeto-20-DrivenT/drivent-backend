@@ -7,10 +7,12 @@ import httpStatus from "http-status";
 import supertest from "supertest";
 import { createEvent, createUser } from "../factories";
 import { cleanDb } from "../helpers";
+import { redisClient } from "@/config/redis";
 
 beforeAll(async () => {
   await init();
   await cleanDb();
+  await redisClient.flushDb();
 });
 
 const server = supertest(app);
@@ -56,7 +58,8 @@ describe("POST /users", () => {
     describe("when event started", () => {
       beforeAll(async () => {
         await prisma.event.deleteMany({});
-        await createEvent();
+        await redisClient.flushDb();
+        const test = await createEvent();
       });
 
       it("should respond with status 409 when there is an user with given email", async () => {
