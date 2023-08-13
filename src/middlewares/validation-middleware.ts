@@ -16,7 +16,6 @@ function validate(schema: ObjectSchema, type: "body" | "params") {
     const { error } = schema.validate(req[type], {
       abortEarly: false,
     });
-
     if (!error) {
       next();
     } else {
