@@ -1,5 +1,5 @@
 import { init } from "@/app";
-import redis from "@/config/redis";
+import { redisClient } from "@/config/redis";
 import { createEvent } from "../factories";
 import { cleanDb } from "../helpers";
 import eventRepository from "@/repositories/event-repository";
@@ -11,13 +11,14 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await cleanDb();
+  await redisClient.flushDb();
 });
 
 describe("Events service unit tests", () => {
   it("getFirstEvent should retrieve event data from redis", async () => {
     const event = await createEvent();
 
-    const mock = jest.spyOn(redis, "get").mockImplementationOnce((): any => {
+    const mock = jest.spyOn(redisClient, "get").mockImplementationOnce((): any => {
       return JSON.stringify(event);
     });
 
@@ -30,7 +31,7 @@ describe("Events service unit tests", () => {
     expect(mockRepository).toBeCalledTimes(0);
   });
   it("getFirstEvent should retrieve event data from postgres", async () => {
-    const mock = jest.spyOn(redis, "get").mockImplementationOnce((): any => {
+    const mock = jest.spyOn(redisClient, "get").mockImplementationOnce((): any => {
       return false;
     });
 
@@ -38,7 +39,7 @@ describe("Events service unit tests", () => {
       return true;
     });
 
-    const mockSet = jest.spyOn(redis, "setEx").mockImplementationOnce((): any => {
+    const mockSet = jest.spyOn(redisClient, "setEx").mockImplementationOnce((): any => {
       return false;
     });
 
@@ -51,7 +52,7 @@ describe("Events service unit tests", () => {
   it("isCurrentEventActive should retrieve event data from redis", async () => {
     const event = await createEvent();
 
-    const mock = jest.spyOn(redis, "get").mockImplementationOnce((): any => {
+    const mock = jest.spyOn(redisClient, "get").mockImplementationOnce((): any => {
       return JSON.stringify(event);
     });
 
@@ -64,7 +65,7 @@ describe("Events service unit tests", () => {
     expect(mockRepository).toBeCalledTimes(0);
   });
   it("isCurrentEventActive should retrieve event data from postgres", async () => {
-    const mock = jest.spyOn(redis, "get").mockImplementationOnce((): any => {
+    const mock = jest.spyOn(redisClient, "get").mockImplementationOnce((): any => {
       return false;
     });
 
@@ -72,7 +73,7 @@ describe("Events service unit tests", () => {
       return true;
     });
 
-    const mockSet = jest.spyOn(redis, "setEx").mockImplementationOnce((): any => {
+    const mockSet = jest.spyOn(redisClient, "setEx").mockImplementationOnce((): any => {
       return false;
     });
 

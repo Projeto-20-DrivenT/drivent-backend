@@ -1,8 +1,7 @@
 import { notFoundError, unauthorizedError } from "@/errors";
-import paymentRepository, { PaymentParams } from "@/repositories/payment-repository";
+import paymentRepository from "@/repositories/payment-repository";
 import ticketRepository from "@/repositories/ticket-repository";
 import enrollmentRepository from "@/repositories/enrollment-repository";
-import userRepository from "@/repositories/user-repository";
 import { Ticket, TicketType } from ".prisma/client";
 import sgMail from "@sendgrid/mail";
 
@@ -34,7 +33,7 @@ async function paymentProcess(ticketId: number, userId: number, cardData: CardPa
   await verifyTicketAndEnrollment(ticketId, userId);
 
   const ticket = await ticketRepository.findTickeWithTypeById(ticketId);
-  
+
   const paymentData = {
     ticketId,
     value: ticket.TicketType.price,
@@ -51,17 +50,17 @@ async function paymentProcess(ticketId: number, userId: number, cardData: CardPa
   return payment;
 }
 
-async function paymentConfimationEmail(userId: number, ticket: Ticket & {TicketType: TicketType}) {
+async function paymentConfimationEmail(userId: number, ticket: Ticket & { TicketType: TicketType }) {
   sgMail.setApiKey(process.env.EMAIL_API_KEY);
 
   const enroll = await enrollmentRepository.findWithUserByuserId(userId);
 
   let text = `<h3>Prezado(a) ${enroll.name}</h3>, 
-  <p>É com grande satisfação que recebemos o seu pagamento 
-  referente ao Ticket ${ticket.TicketType.name} do tipo ${ticket.TicketType.isRemote? "remoto.</p>" : "presencial"}`;
+  <p>É com grande satisfação que recebemos o seu pagamento
+  referente ao Ticket ${ticket.TicketType.name} do tipo ${ticket.TicketType.isRemote ? "remoto.</p>" : "presencial"}`;
 
-  if(!ticket.TicketType.isRemote) {
-    text += `${ticket.TicketType.includesHotel? " com Hotel.</p>" : " sem Hotel.</p> "} `;
+  if (!ticket.TicketType.isRemote) {
+    text += `${ticket.TicketType.includesHotel ? " com Hotel.</p>" : " sem Hotel.</p> "} `;
   }
   text += `
   <p>O seu lugar está garantido e estamos ansiosos para recebê-lo(a) em nosso evento.
@@ -76,18 +75,18 @@ async function paymentConfimationEmail(userId: number, ticket: Ticket & {TicketT
 
   try {
     await sgMail.send(msg);
-  } catch(err) {
+  } catch (err) {
     console.log(err.response.body);
   }
 }
 
 export type CardPaymentParams = {
-  issuer: string,
-  number: number,
-  name: string,
-  expirationDate: Date,
-  cvv: number
-}
+  issuer: string;
+  number: number;
+  name: string;
+  expirationDate: Date;
+  cvv: number;
+};
 
 const paymentService = {
   getPaymentByTicketId,
