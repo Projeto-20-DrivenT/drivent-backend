@@ -1,4 +1,8 @@
+import { notFoundError, paymentRequired } from "@/errors";
 import activityRepository from "@/repositories/activity-repository";
+import bookingRepository from "@/repositories/booking-repository";
+import enrollmentRepository from "@/repositories/enrollment-repository";
+import ticketRepository from "@/repositories/ticket-repository";
 import { Activity, EventDates, Venues } from "@prisma/client";
 
 type ResultActivity = Omit<Activity, "updatedAt" | "createdAt" | "venueId" | "eventDateId">;
@@ -19,7 +23,25 @@ type Results = EventDates & {
   })[];
 }
 
-async function getActivity(): Promise<FormattedData[]> {
+async function getActivity(userId: number): Promise<FormattedData[]> {
+  const result = await enrollmentRepository.findEnrollmentAndTicketByUserId(userId);
+
+  const ticket = result?.Ticket[0];
+  if (!result || !ticket) {
+    throw notFoundError();
+  }
+
+  if (ticket.status !== "PAID") {
+    throw paymentRequired();
+  }
+
+  const ticketType = await ticketRepository.getTicketType(ticket.ticketTypeId);
+  const booking = await bookingRepository.findByUserId(userId);
+
+  if(ticketType.includesHotel && !booking) {
+    throw notFoundError();
+  }
+
   const results = await activityRepository.getActivity();
   const formattedData = await formatActivityData(results);
   return formattedData;
