@@ -6,6 +6,7 @@ async function getActivity() {
       Activity: {
         include: {
           Venues: true,
+          Registration: true,
         },
       },
     },

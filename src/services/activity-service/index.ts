@@ -3,9 +3,9 @@ import activityRepository from "@/repositories/activity-repository";
 import bookingRepository from "@/repositories/booking-repository";
 import enrollmentRepository from "@/repositories/enrollment-repository";
 import ticketRepository from "@/repositories/ticket-repository";
-import { Activity, EventDates, Venues } from "@prisma/client";
+import { Activity, EventDates, Registration, Venues } from "@prisma/client";
 
-type ResultActivity = Omit<Activity, "updatedAt" | "createdAt" | "venueId" | "eventDateId">;
+type ResultActivity = Omit<Activity, "updatedAt" | "createdAt" | "venueId" | "eventDateId"> & { registration: number };
 
 type VenueObj = {
   venueName: string;
@@ -20,6 +20,7 @@ type FormattedData = {
 type Results = EventDates & {
   Activity: (Activity & {
       Venues: Venues;
+      Registration: Registration[];
   })[];
 }
 
@@ -64,6 +65,7 @@ async function formatActivityData(results: Results[]): Promise<FormattedData[]> 
         capacity: activity.capacity,
         startTime: activity.startTime,
         endTime: activity.endTime,
+        registration: activity.Registration.length,
       };
 
       if (existingVenue) {
