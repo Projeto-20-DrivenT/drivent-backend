@@ -8,4 +8,4 @@ export const signInSchema = Joi.object<SignInParams>({
 
 export const githubSignInSchema = Joi.object<{code: string}>({
   code: Joi.string().required(),
-})
+});
