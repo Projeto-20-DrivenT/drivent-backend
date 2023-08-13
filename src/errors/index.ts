@@ -7,3 +7,6 @@ export * from "./unauthorized-error";
 export * from "./request-error";
 export * from "./cannot-booking-error";
 export * from "./payment-required-error";
+export * from "./forbidden-error";
+export * from "./precondition-failed-error";
+export * from "./cannot-registration-error";

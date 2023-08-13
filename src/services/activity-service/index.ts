@@ -1,4 +1,4 @@
-import { notFoundError, paymentRequired } from "@/errors";
+import { notFoundError, paymentRequired, preconditionFailed } from "@/errors";
 import activityRepository from "@/repositories/activity-repository";
 import bookingRepository from "@/repositories/booking-repository";
 import enrollmentRepository from "@/repositories/enrollment-repository";
@@ -40,7 +40,7 @@ async function getActivity(userId: number): Promise<FormattedData[]> {
   const booking = await bookingRepository.findByUserId(userId);
 
   if(ticketType.includesHotel && !booking) {
-    throw notFoundError();
+    throw preconditionFailed("Need to book hotel room in advance!");
   }
 
   const results = await activityRepository.getActivity();
