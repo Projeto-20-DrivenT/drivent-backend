@@ -3,6 +3,7 @@ import eventRepository from "@/repositories/event-repository";
 import { exclude } from "@/utils/prisma-utils";
 import { Event } from "@prisma/client";
 import dayjs from "dayjs";
+// eslint-disable-next-line boundaries/element-types
 import { redisClient, DEFAULT_EXP } from "@/config/redis";
 
 async function getFirstEvent(): Promise<GetFirstEventResult> {
@@ -15,15 +16,13 @@ async function getFirstEvent(): Promise<GetFirstEventResult> {
   if (result) {
     event = JSON.parse(result);
   } else {
-
     event = await eventRepository.findFirst();
 
     if (!event) {
       throw notFoundError();
     }
 
-await redisClient.setEx(eventsKey, DEFAULT_EXP, JSON.stringify(event));
-
+    await redisClient.setEx(eventsKey, DEFAULT_EXP, JSON.stringify(event));
   }
 
   return exclude(event, "createdAt", "updatedAt");

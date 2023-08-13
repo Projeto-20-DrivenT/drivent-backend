@@ -18,7 +18,6 @@ export async function listBooking(req: AuthenticatedRequest, res: Response) {
 }
 
 export async function listBookingByRoomId(req: AuthenticatedRequest, res: Response) {
-
   interface Booking {
   id: number;
   Room: Room;
@@ -34,7 +33,6 @@ export async function listBookingByRoomId(req: AuthenticatedRequest, res: Respon
   }
 }
 export async function listBookingByHotelId(req: AuthenticatedRequest, res: Response) {
-
   interface Booking {
   id: number;
   Room: Room;
@@ -49,7 +47,6 @@ export async function listBookingByHotelId(req: AuthenticatedRequest, res: Respo
     return res.sendStatus(httpStatus.NOT_FOUND);
   }
 }
-
 
 export async function bookingRoom(req: AuthenticatedRequest, res: Response) {
   try {

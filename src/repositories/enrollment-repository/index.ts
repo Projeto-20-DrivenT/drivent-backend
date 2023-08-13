@@ -1,5 +1,6 @@
 import { prisma } from "@/config";
-import { Enrollment } from "@prisma/client";
+import { Enrollment, Prisma, PrismaClient } from "@prisma/client";
+import { CreateAddressParams, UpdateAddressParams } from "../address-repository";
 
 async function findWithAddressByUserId(userId: number) {
   return prisma.enrollment.findFirst({
@@ -12,7 +13,7 @@ async function findWithAddressByUserId(userId: number) {
 
 async function findById(enrollmentId: number) {
   return prisma.enrollment.findFirst({
-    where: { id: enrollmentId }
+    where: { id: enrollmentId },
   });
 }
 
@@ -30,11 +31,63 @@ async function upsert(
   });
 }
 
-async function findWithUserByuserId(userId: number){
+async function findWithUserByuserId(userId: number) {
   return prisma.enrollment.findFirst({
     where: { userId },
     include: {
       User: true,
+    },
+  });
+}
+
+async function createOrUpdateEnrollmentAndAddress(
+  enrollmentId: number,
+  userId: number,
+  createdEnrollment: CreateEnrollmentParams,
+  createdAddress: CreateAddressParams,
+) {
+  const enrollmentData = {
+    name: createdEnrollment.name,
+    cpf: createdEnrollment.cpf,
+    birthday: createdEnrollment.birthday,
+    phone: createdEnrollment.phone,
+    userId: createdEnrollment.userId,
+  };
+
+  const addressData = {
+    cep: createdAddress.cep,
+    street: createdAddress.street,
+    city: createdAddress.city,
+    state: createdAddress.state,
+    number: createdAddress.number,
+    neighborhood: createdAddress.neighborhood,
+    addressDetail: createdAddress.addressDetail,
+  };
+
+  return await prisma.enrollment.upsert({
+    where: {
+      userId,
+    },
+    create: {
+      ...enrollmentData,
+      Address: {
+        create: {
+          ...addressData,
+        },
+      },
+    },
+    update: {
+      ...enrollmentData,
+      Address: {
+        update: {
+          where: {
+            enrollmentId,
+          },
+          data: {
+            ...addressData,
+          },
+        },
+      },
     },
   });
 }
@@ -46,7 +99,8 @@ const enrollmentRepository = {
   findWithAddressByUserId,
   upsert,
   findById,
-  findWithUserByuserId
+  findWithUserByuserId,
+  createOrUpdateEnrollmentAndAddress,
 };
 
 export default enrollmentRepository;

@@ -1,5 +1,5 @@
 import { init } from "@/app";
-import redis from "@/config/redis";
+import { redisClient } from "@/config/redis";
 import { createHotel } from "../factories";
 import { cleanDb } from "../helpers";
 import hotelService from "@/services/hotels-service";
@@ -13,110 +13,108 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await cleanDb();
-  await redis.connect();
-  await redis.flushDb();
-  await redis.quit();
+  await redisClient.flushDb();
 });
 
 describe("Hotels service unit tests", () => {
-  // it("getHotels should retrieve event data from redis", async () => {
-  //   const hotel = await createHotel();
+  it("getHotels should retrieve event data from redis", async () => {
+    const hotel = await createHotel();
 
-  //   const mock = jest.spyOn(redis, "get").mockImplementationOnce((): any => {
-  //     return JSON.stringify(hotel);
-  //   });
+    const mock = jest.spyOn(redisClient, "get").mockImplementationOnce((): any => {
+      return JSON.stringify(hotel);
+    });
 
-  //   const mockRepository = jest.spyOn(hotelRepository, "findHotels").mockImplementationOnce((): any => {
-  //     return true;
-  //   });
+    const mockRepository = jest.spyOn(hotelRepository, "findHotels").mockImplementationOnce((): any => {
+      return true;
+    });
 
-  //   jest.spyOn(enrollmentRepository, "findWithAddressByUserId").mockImplementationOnce((): any => {
-  //     return true;
-  //   });
+    jest.spyOn(enrollmentRepository, "findWithAddressByUserId").mockImplementationOnce((): any => {
+      return true;
+    });
 
-  //   jest.spyOn(ticketRepository, "findTicketByEnrollmentId").mockImplementationOnce((enrollmentId: number): any => {
-  //     return {
-  //       status: "PAID",
-  //       TicketType: {
-  //         isRemote: false,
-  //         includesHotel: true,
-  //       },
-  //     };
-  //   });
+    jest.spyOn(ticketRepository, "findTicketByEnrollmentId").mockImplementationOnce((enrollmentId: number): any => {
+      return {
+        status: "PAID",
+        TicketType: {
+          isRemote: false,
+          includesHotel: true,
+        },
+      };
+    });
 
-  //   await hotelService.getHotels(1);
+    await hotelService.getHotels(1);
 
-  //   expect(mock).toBeCalledTimes(1);
-  //   expect(mockRepository).toBeCalledTimes(0);
-  // });
-  // it("getHotels should retrieve event data from postgres", async () => {
-  //   createHotel();
+    expect(mock).toBeCalledTimes(1);
+    expect(mockRepository).toBeCalledTimes(0);
+  });
+  it("getHotels should retrieve event data from postgres", async () => {
+    createHotel();
 
-  //   const mock = jest.spyOn(redis, "get").mockImplementationOnce((): any => {
-  //     return false;
-  //   });
+    const mock = jest.spyOn(redisClient, "get").mockImplementationOnce((): any => {
+      return false;
+    });
 
-  //   const mockRepository = jest.spyOn(hotelRepository, "findHotels").mockImplementationOnce((): any => {
-  //     return true;
-  //   });
+    const mockRepository = jest.spyOn(hotelRepository, "findHotels").mockImplementationOnce((): any => {
+      return true;
+    });
 
-  //   jest.spyOn(enrollmentRepository, "findWithAddressByUserId").mockImplementationOnce((): any => {
-  //     return true;
-  //   });
+    jest.spyOn(enrollmentRepository, "findWithAddressByUserId").mockImplementationOnce((): any => {
+      return true;
+    });
 
-  //   jest.spyOn(ticketRepository, "findTicketByEnrollmentId").mockImplementationOnce((enrollmentId: number): any => {
-  //     return {
-  //       status: "PAID",
-  //       TicketType: {
-  //         isRemote: false,
-  //         includesHotel: true,
-  //       },
-  //     };
-  //   });
+    jest.spyOn(ticketRepository, "findTicketByEnrollmentId").mockImplementationOnce((enrollmentId: number): any => {
+      return {
+        status: "PAID",
+        TicketType: {
+          isRemote: false,
+          includesHotel: true,
+        },
+      };
+    });
 
-  //   const mockSet = jest.spyOn(redis, "setEx").mockImplementationOnce((): any => {
-  //     return false;
-  //   });
+    const mockSet = jest.spyOn(redisClient, "setEx").mockImplementationOnce((): any => {
+      return false;
+    });
 
-  //   await hotelService.getHotels(1);
+    await hotelService.getHotels(1);
 
-  //   expect(mock).toBeCalledTimes(1);
-  //   expect(mockRepository).toBeCalledTimes(1);
-  //   expect(mockSet).toBeCalledTimes(1);
-  // });
-  // it("getHotelsWithRooms should retrieve event data from redis", async () => {
-  //   const hotel = await createHotel();
+    expect(mock).toBeCalledTimes(1);
+    expect(mockRepository).toBeCalledTimes(1);
+    expect(mockSet).toBeCalledTimes(1);
+  });
+  it("getHotelsWithRooms should retrieve event data from redis", async () => {
+    const hotel = await createHotel();
 
-  //   const mock = jest.spyOn(redis, "get").mockImplementationOnce((): any => {
-  //     return JSON.stringify(hotel);
-  //   });
+    const mock = jest.spyOn(redisClient, "get").mockImplementationOnce((): any => {
+      return JSON.stringify(hotel);
+    });
 
-  //   const mockRepository = jest.spyOn(hotelRepository, "findRoomsByHotelId").mockImplementationOnce((): any => {
-  //     return true;
-  //   });
+    const mockRepository = jest.spyOn(hotelRepository, "findRoomsByHotelId").mockImplementationOnce((): any => {
+      return true;
+    });
 
-  //   jest.spyOn(enrollmentRepository, "findWithAddressByUserId").mockImplementationOnce((): any => {
-  //     return true;
-  //   });
+    jest.spyOn(enrollmentRepository, "findWithAddressByUserId").mockImplementationOnce((): any => {
+      return true;
+    });
 
-  //   jest.spyOn(ticketRepository, "findTicketByEnrollmentId").mockImplementationOnce((enrollmentId: number): any => {
-  //     return {
-  //       status: "PAID",
-  //       TicketType: {
-  //         isRemote: false,
-  //         includesHotel: true,
-  //       },
-  //     };
-  //   });
+    jest.spyOn(ticketRepository, "findTicketByEnrollmentId").mockImplementationOnce((enrollmentId: number): any => {
+      return {
+        status: "PAID",
+        TicketType: {
+          isRemote: false,
+          includesHotel: true,
+        },
+      };
+    });
 
-  //   await hotelService.getHotelsWithRooms(1, hotel.id);
-  //   expect(mock).toBeCalledTimes(1);
-  //   expect(mockRepository).toBeCalledTimes(0);
-  // });
+    await hotelService.getHotelsWithRooms(1, hotel.id);
+    expect(mock).toBeCalledTimes(1);
+    expect(mockRepository).toBeCalledTimes(0);
+  });
   it("getHotelsWithRooms should retrieve event data from postgres", async () => {
     const hotel = await createHotel();
 
-    const mock = jest.spyOn(redis, "get").mockImplementationOnce((): any => {
+    const mock = jest.spyOn(redisClient, "get").mockImplementationOnce((): any => {
       return false;
     });
 
@@ -138,7 +136,7 @@ describe("Hotels service unit tests", () => {
       };
     });
 
-    const mockSet = jest.spyOn(redis, "setEx").mockImplementationOnce((): any => {
+    const mockSet = jest.spyOn(redisClient, "setEx").mockImplementationOnce((): any => {
       return false;
     });
 

@@ -8,10 +8,12 @@ import * as jwt from "jsonwebtoken";
 import supertest from "supertest";
 import { createEnrollmentWithAddress, createUser, createhAddressWithCEP } from "../factories";
 import { cleanDb, generateValidToken } from "../helpers";
+import { redisClient } from "@/config/redis";
 
 beforeAll(async () => {
   await init();
   await cleanDb();
+  await redisClient.flushDb();
 });
 
 const server = supertest(app);
