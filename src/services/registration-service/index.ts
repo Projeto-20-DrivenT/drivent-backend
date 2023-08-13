@@ -1,4 +1,4 @@
-import { cannotRegistrationError, conflictError, forbiddenRequest, notFoundError, paymentRequired, preconditionFailed } from "@/errors";
+import { conflictError, forbiddenRequest, notFoundError, paymentRequired, preconditionFailed } from "@/errors";
 import activityRepository from "@/repositories/activity-repository";
 import bookingRepository from "@/repositories/booking-repository";
 import enrollmentRepository from "@/repositories/enrollment-repository";
@@ -8,7 +8,7 @@ import ticketRepository from "@/repositories/ticket-repository";
 async function createRegistration(userId: number, actitityId: number) {
   const result = await enrollmentRepository.findEnrollmentAndTicketByUserId(userId);
   const ticket = result?.Ticket[0];
-  
+
   if (!result || !ticket) {
     throw notFoundError();
   }
@@ -33,7 +33,7 @@ async function createRegistration(userId: number, actitityId: number) {
   const registrations= activityWithRegistrations.Registration;
 
   if( activityWithRegistrations.capacity >= registrations.length ) {
-    throw cannotRegistrationError();
+    throw conflictError("Cannot registration in this activity! Overcapacity!");
   }
 
   if( isActivityTimeConflict(userId, activityWithRegistrations.startTime, activityWithRegistrations.endTime)) {
