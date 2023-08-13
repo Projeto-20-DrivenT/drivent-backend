@@ -44,40 +44,39 @@ async function validatePasswordOrFail(password: string, userPassword: string) {
   if (!isPasswordValid) throw invalidCredentialsError();
 }
 
-async function githubSignIn(code: string){
-
-  const result = await axios.post("https://github.com/login/oauth/access_token",{
+async function githubSignIn(code: string) {
+  const result = await axios.post("https://github.com/login/oauth/access_token", {
     client_id: process.env.CLIENT_ID,
     client_secret: process.env.CLIENT_SECRET,
     code
   }, {
-    headers: {Accept: 'application/json'}
-  })
+    headers: { Accept: "application/json" }
+  });
 
-  const {data} = await axios.get("https://api.github.com/user",{
+  const { data } = await axios.get("https://api.github.com/user", {
     headers: {
       Authorization: `Bearer ${result.data.access_token}`
     }
-  })
+  });
   
-  const email = data.email ? data.email : data.login
-  let user = await userRepository.findByEmail(email, { id: true, email: true});
+  const email = data.email ? data.email : data.login;
+  let user = await userRepository.findByEmail(email, { id: true, email: true });
 
-  if(!user){
+  if(!user) {
     user = await userRepository.create({
       email,
       password: jwt.sign({ email, id: data.id, token: result.data.access_token }, process.env.JWT_SECRET),
-    })
+    });
 
-    delete user.createdAt
-    delete user.updatedAt
+    delete user.createdAt;
+    delete user.updatedAt;
   }
 
   const token = await createSession(user.id);
   return {
     user: exclude(user, "password"),
     token
-  }
+  };
 }
 
 export type SignInParams = Pick<User, "email" | "password">;
