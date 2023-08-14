@@ -43,17 +43,20 @@ async function getActivity(userId: number): Promise<FormattedData[]> {
     throw notFoundError();
   }
 
-  const results = await activityRepository.getActivity();
-  if(!results) {
+  const activityData = await activityRepository.getActivity();
+  if(!activityData) {
     throw notFoundError();
   }
-  const formattedData = await formatActivityData(results);
+  const formattedData = await formatActivityData(activityData);
   return formattedData;
 }
 
 async function formatActivityData(results: Results[]): Promise<FormattedData[]> {
   return results.map((result) => {
-    const eventDay = result.date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    const daysOfWeek = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+    const dayOfWeek = daysOfWeek[result.date.getDay()];
+    const dayAndMonth = result.date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    const eventDay = `${dayOfWeek}, ${dayAndMonth}`;
 
     const venuesData = result.Activity.reduce((acc: VenueObj[], activity) => {
       const venueName = activity.Venues.name;
