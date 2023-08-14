@@ -49,7 +49,7 @@ async function createOrUpdateEnrollmentAndAddress(
   const enrollmentData = {
     name: createdEnrollment.name,
     cpf: createdEnrollment.cpf,
-    birthday: createdEnrollment.birthday,
+    birthday: new Date(createdEnrollment.birthday),
     phone: createdEnrollment.phone,
     userId: createdEnrollment.userId,
   };
