@@ -8,7 +8,6 @@ import ticketRepository from "@/repositories/ticket-repository";
 async function createRegistration(userId: number, activityId: number) {
   const result = await enrollmentRepository.findEnrollmentAndTicketByUserId(userId);
   const ticket = result?.Ticket[0];
-
   if (!result || !ticket) {
     throw notFoundError();
   }
@@ -30,13 +29,17 @@ async function createRegistration(userId: number, activityId: number) {
   }
 
   const activityWithRegistrations = await activityRepository.getActivityWithRegistrationsByActivityId(activityId);
-  const registrations= activityWithRegistrations.Registration;
+  const registrations = activityWithRegistrations?.Registration;
 
-  if( activityWithRegistrations.capacity >= registrations.length ) {
+  if(!activityWithRegistrations) {
+    throw notFoundError();
+  }
+  
+  if( activityWithRegistrations.capacity <= registrations.length ) {
     throw conflictError("Cannot registration in this activity! Overcapacity!");
   }
 
-  if( isActivityTimeConflict(userId, activityWithRegistrations.startTime, activityWithRegistrations.endTime)) {
+  if( await isActivityTimeConflict(userId, activityWithRegistrations.startTime, activityWithRegistrations.endTime)) {
     throw conflictError("Time conflict. The new activity overlaps the activities already registered");
   }
 

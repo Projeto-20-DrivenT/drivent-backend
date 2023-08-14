@@ -9,3 +9,4 @@ export * from "./booking-factory";
 export * from "./activity-factory";
 export * from "./venue-factory";
 export * from "./eventDate-factory";
+export * from "./registration-factory";

@@ -14,6 +14,7 @@ import {
   createEventDate,
   createVenue,
   createActivity,
+  createRegistration,
 } from "../factories";
 import { cleanDb, generateValidToken } from "../helpers";
 import { TicketStatus } from "@prisma/client";
@@ -137,6 +138,110 @@ describe("POST /registration", () => {
         const response = await server.post("/registration").set("Authorization", `Bearer ${token}`).send(body);
 
         expect(response.status).toBe(httpStatus.FORBIDDEN);
+      });
+
+      it("should respond with status 404 if there is no available activity data", async () => {
+        const user = await createUser();
+        const token = await generateValidToken(user);
+        const enrollment = await createEnrollmentWithAddress(user);
+
+        const isRemote = false;
+        const includesHotel = true;
+        const ticketType = await createTicketType(isRemote, includesHotel);
+        await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+
+        const hotel = await createHotel();
+        const room = await createRoomWithHotelId(hotel.id);
+        await createBooking({ roomId: room.id, userId: user.id });
+
+        const body = { activityId: 1 };
+
+        const response = await server.post("/registration").set("Authorization", `Bearer ${token}`).send(body);
+
+        expect(response.status).toBe(httpStatus.NOT_FOUND);
+      });
+
+      it("should respond with status 409 if activity capacity is exceeded", async () => {
+        const user = await createUser();
+        const token = await generateValidToken(user);
+        const enrollment = await createEnrollmentWithAddress(user);
+
+        const isRemote = false;
+        const includesHotel = true;
+        const ticketType = await createTicketType(isRemote, includesHotel);
+        await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+
+        const hotel = await createHotel();
+        const room = await createRoomWithHotelId(hotel.id);
+        await createBooking({ roomId: room.id, userId: user.id });
+
+        const capacity = 0;
+        const eventDate = await createEventDate();
+        const venue = await createVenue();
+        const activity = await createActivity(eventDate.id, venue.id, capacity);
+
+        const body = { activityId: activity.id };
+
+        const response = await server.post("/registration").set("Authorization", `Bearer ${token}`).send(body);
+
+        expect(response.status).toBe(httpStatus.CONFLICT);
+      });
+
+      it("should respond with status 409 if activity has time conflict", async () => {
+        const user = await createUser();
+        const token = await generateValidToken(user);
+        const enrollment = await createEnrollmentWithAddress(user);
+
+        const isRemote = false;
+        const includesHotel = true;
+        const ticketType = await createTicketType(isRemote, includesHotel);
+        await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+
+        const hotel = await createHotel();
+        const room = await createRoomWithHotelId(hotel.id);
+        await createBooking({ roomId: room.id, userId: user.id });
+
+        const eventDate = await createEventDate();
+        const venue = await createVenue();
+        const activity = await createActivity(eventDate.id, venue.id);
+        await createRegistration(user.id, activity.id);
+
+        const body = { activityId: activity.id };
+
+        const response = await server.post("/registration").set("Authorization", `Bearer ${token}`).send(body);
+
+        expect(response.status).toBe(httpStatus.CONFLICT);
+      });
+    });
+
+    it("should respond with status 201 and regitration data", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+
+      const isRemote = false;
+      const includesHotel = true;
+      const ticketType = await createTicketType(isRemote, includesHotel);
+      await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+
+      const hotel = await createHotel();
+      const room = await createRoomWithHotelId(hotel.id);
+      await createBooking({ roomId: room.id, userId: user.id });
+
+      const eventDate = await createEventDate();
+      const venue = await createVenue();
+      const activity = await createActivity(eventDate.id, venue.id);
+
+      const body = { activityId: activity.id };
+
+      const response = await server.post("/registration").set("Authorization", `Bearer ${token}`).send(body);
+      expect(response.status).toBe(httpStatus.CREATED);
+      expect(response.body).toEqual({
+        id: expect.any(Number),
+        userId: expect.any(Number),
+        activityId: expect.any(Number),
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
       });
     });
   });
