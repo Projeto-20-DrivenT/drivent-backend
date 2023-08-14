@@ -1,5 +1,3 @@
-import faker from "@faker-js/faker";
-import { Booking } from "@prisma/client";
 import { prisma } from "@/config";
 
 type CreateBookingParams = {
@@ -15,4 +13,3 @@ export function createBooking({ roomId, userId }: CreateBookingParams) {
     }
   });
 }
-

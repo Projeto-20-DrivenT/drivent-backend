@@ -44,7 +44,7 @@ async function getActivity(userId: number): Promise<FormattedData[]> {
   }
 
   const activityData = await activityRepository.getActivity();
-  if(!activityData) {
+  if(activityData.length === 0) {
     throw notFoundError();
   }
   const formattedData = await formatActivityData(activityData);

@@ -6,3 +6,6 @@ export * from "./tickets-factory";
 export * from "./payments-factory";
 export * from "./hotels-factory";
 export * from "./booking-factory";
+export * from "./activity-factory";
+export * from "./venue-factory";
+export * from "./eventDate-factory";
