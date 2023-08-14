@@ -6,7 +6,6 @@ import httpStatus from "http-status";
 export async function createRegistration(req: AuthenticatedRequest, res: Response) {
   const userId = req.userId;
   const activityId = Number(req.body.activityId);
-
   try {
     const registration = await registrationService.createRegistration(userId, activityId);
     return res.status(httpStatus.CREATED).send(registration);
