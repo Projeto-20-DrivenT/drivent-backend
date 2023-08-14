@@ -54,25 +54,28 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
   const enrollment = exclude(params, "address");
   const address = getAddressForUpsert(params.address);
 
-  //BUG - Verificar se o CEP é válido
+  // Convert the string date to a JavaScript Date object
+  
+  const birthdayDate = new Date(params.birthday);
 
   const result = await getAddressFromCEP(address.cep);
   if (result.error) {
     throw notFoundError();
   }
 
-  const enrollmentExist = await enrollmentRepository.findWithAddressByUserId(params.userId);
-  if (!enrollmentExist) {
-    const idThatDoesNotExist = -9e10;
-    await enrollmentRepository.createOrUpdateEnrollmentAndAddress(idThatDoesNotExist, params.userId, enrollment, address);
-  }
-  else
-    await enrollmentRepository.createOrUpdateEnrollmentAndAddress(
-      enrollmentExist.id,
-      params.userId,
-      enrollment,
-      address,
-    );
+  const newEnrollment = await enrollmentRepository.upsert(
+    params.userId,
+    {
+      ...enrollment,
+      birthday: birthdayDate,
+    },
+    exclude( {
+      ...enrollment,
+      birthday: birthdayDate,
+    }, "userId")
+  );
+
+  await addressRepository.upsert(newEnrollment.id, address, address);
 }
 
 function getAddressForUpsert(address: CreateAddressParams) {
