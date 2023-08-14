@@ -3,7 +3,6 @@ import dayjs from "dayjs";
 import bcrypt from "bcrypt";
 import { faker } from "@faker-js/faker";
 import { generateCPF, getStates } from "@brazilian-utils/brazilian-utils";
-import { options } from "joi";
 
 const prisma = new PrismaClient();
 
@@ -121,7 +120,7 @@ async function createFakeData() {
     prisma.venues.create({
       data: {
         name: faker.company.companyName(),
-        capacity: faker.random.number({ min: 50, max: 1000 }),
+        capacity: faker.datatype.number({ min: 50, max: 1000 }),
       },
     })
   );
@@ -145,12 +144,13 @@ async function createFakeData() {
 
   for (const eventDate of eventDates) {
     for (const venue of venues) {
+      const data = faker.date.future();
       const activity = await prisma.activity.create({
         data: {
           name: faker.random.word(),
           capacity: faker.datatype.number({ min: 10, max: 200 }),
-          startTime: faker.date.future().toString(),
-          endTime: faker.date.future().toString(),
+          startTime: data.toString(),
+          endTime: dayjs(data).add(2, "hours").toString(),
           EventDate: { connect: { id: eventDate.id } },
           Venues: { connect: { id: venue.id } },
         },
