@@ -5,7 +5,7 @@ import enrollmentRepository from "@/repositories/enrollment-repository";
 import registrationRepository from "@/repositories/registration-repository";
 import ticketRepository from "@/repositories/ticket-repository";
 
-async function createRegistration(userId: number, actitityId: number) {
+async function createRegistration(userId: number, activityId: number) {
   const result = await enrollmentRepository.findEnrollmentAndTicketByUserId(userId);
   const ticket = result?.Ticket[0];
 
@@ -29,7 +29,7 @@ async function createRegistration(userId: number, actitityId: number) {
     throw forbiddenRequest(message);
   }
 
-  const activityWithRegistrations = await activityRepository.getActivityWithRegistrationsByActivityId(actitityId);
+  const activityWithRegistrations = await activityRepository.getActivityWithRegistrationsByActivityId(activityId);
   const registrations= activityWithRegistrations.Registration;
 
   if( activityWithRegistrations.capacity >= registrations.length ) {
@@ -40,7 +40,7 @@ async function createRegistration(userId: number, actitityId: number) {
     throw conflictError("Time conflict. The new activity overlaps the activities already registered");
   }
 
-  const createRegistration = await registrationRepository.createRegistration(userId, actitityId);
+  const createRegistration = await registrationRepository.createRegistration(userId, activityId);
   return createRegistration;
 }
 
