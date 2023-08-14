@@ -30,3 +30,7 @@ export type RequestError = {
   name: string,
   message: string,
 };
+
+export type InputRegistrationBody = {
+  activityId: number,
+};
