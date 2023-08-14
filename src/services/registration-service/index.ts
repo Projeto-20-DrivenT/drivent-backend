@@ -32,11 +32,11 @@ async function createRegistration(userId: number, actitityId: number) {
   const activityWithRegistrations = await activityRepository.getActivityWithRegistrationsByActivityId(actitityId);
   const registrations= activityWithRegistrations.Registration;
 
-  if( activityWithRegistrations.capacity >= registrations.length ) {
+  if(registrations.length >= activityWithRegistrations.capacity) {
     throw conflictError("Cannot registration in this activity! Overcapacity!");
   }
 
-  if( isActivityTimeConflict(userId, activityWithRegistrations.startTime, activityWithRegistrations.endTime)) {
+  if(await isActivityTimeConflict(userId, activityWithRegistrations.startTime, activityWithRegistrations.endTime)) {
     throw conflictError("Time conflict. The new activity overlaps the activities already registered");
   }
 
