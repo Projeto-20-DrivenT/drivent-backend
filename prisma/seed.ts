@@ -1,23 +1,23 @@
-import { PrismaClient } from '@prisma/client';
-import dayjs from 'dayjs';
-import bcrypt from 'bcrypt';
-import { faker } from '@faker-js/faker';
-import { generateCPF, getStates } from '@brazilian-utils/brazilian-utils';
-import { options } from 'joi';
+import { Activity, PrismaClient, Registration } from "@prisma/client";
+import dayjs from "dayjs";
+import bcrypt from "bcrypt";
+import { faker } from "@faker-js/faker";
+import { generateCPF, getStates } from "@brazilian-utils/brazilian-utils";
+import { options } from "joi";
 
 const prisma = new PrismaClient();
 
 async function createEvent() {
-  console.log('Creating event...');
+  console.log("Creating event...");
 
   return prisma.event.create({
     data: {
-      title: 'Driven.t',
+      title: "Driven.t",
       logoImageUrl:
-        'https://uploads-ssl.webflow.com/62235d098ddf9185c2d74422/63501c4f05bcfe3a3ce9327a_logo_pink%20(1).png',
-      backgroundImageUrl: 'linear-gradient(to right, #FA4098, #FFD77F)',
+        "https://uploads-ssl.webflow.com/62235d098ddf9185c2d74422/63501c4f05bcfe3a3ce9327a_logo_pink%20(1).png",
+      backgroundImageUrl: "linear-gradient(to right, #FA4098, #FFD77F)",
       startsAt: dayjs().toDate(),
-      endsAt: dayjs().add(21, 'days').toDate(),
+      endsAt: dayjs().add(21, "days").toDate(),
     },
   });
 }
@@ -37,17 +37,17 @@ function getRooms() {
 }
 
 async function createHotels() {
-  console.log('Creating hotels...');
+  console.log("Creating hotels...");
 
   const images = [
-    'https://media-cdn.tripadvisor.com/media/photo-s/16/1a/ea/54/hotel-presidente-4s.jpg',
-    'https://forbes.com.br/wp-content/uploads/2022/02/Life_Forbes-Travel-Guide-os-40-melhores-hoteis-que-chegam-em-2022-768x512.jpg',
+    "https://media-cdn.tripadvisor.com/media/photo-s/16/1a/ea/54/hotel-presidente-4s.jpg",
+    "https://forbes.com.br/wp-content/uploads/2022/02/Life_Forbes-Travel-Guide-os-40-melhores-hoteis-que-chegam-em-2022-768x512.jpg",
   ];
 
   const hotels = images.map((image, index) => {
     return {
       image,
-      name: `Hotel ${(index + 1).toString().padStart(2, '0')}`,
+      name: `Hotel ${(index + 1).toString().padStart(2, "0")}`,
       Rooms: {
         create: getRooms(),
       },
@@ -66,19 +66,19 @@ interface CreateScenarioParams {
 async function createScenario(options: CreateScenarioParams) {
   const { email, isRemote, includesHotel } = options;
   const price = faker.datatype.number();
-  console.log('\nCreating user:');
-  console.log({ ...options, password: 'password' });
+  console.log("\nCreating user:");
+  console.log({ ...options, password: "password" });
 
   return prisma.user.create({
     data: {
       email,
-      password: bcrypt.hashSync('password', 12),
+      password: bcrypt.hashSync("password", 12),
       Enrollment: {
         create: {
           name: faker.name.findName(),
           cpf: generateCPF(),
           birthday: faker.date.past(),
-          phone: faker.phone.phoneNumber('(##) 9####-####'),
+          phone: faker.phone.phoneNumber("(##) 9####-####"),
           Address: {
             create: {
               street: faker.address.streetName(),
@@ -91,7 +91,7 @@ async function createScenario(options: CreateScenarioParams) {
           },
           Ticket: {
             create: {
-              status: 'PAID',
+              status: "PAID",
               TicketType: {
                 create: {
                   price,
@@ -103,7 +103,7 @@ async function createScenario(options: CreateScenarioParams) {
               Payment: {
                 create: {
                   cardIssuer: faker.name.findName(),
-                  cardLastDigits: faker.datatype.number({ min: 0, max: 9999 }).toString().padStart(4, '0'),
+                  cardLastDigits: faker.datatype.number({ min: 0, max: 9999 }).toString().padStart(4, "0"),
                   value: price,
                 },
               },
@@ -115,13 +115,79 @@ async function createScenario(options: CreateScenarioParams) {
   });
 }
 
+async function createFakeData() {
+  // Generate fake Venues
+  const venuePromises = Array.from({ length: 5 }, () =>
+    prisma.venues.create({
+      data: {
+        name: faker.company.companyName(),
+        capacity: faker.random.number({ min: 50, max: 1000 }),
+      },
+    })
+  );
+
+  // Generate fake EventDates
+  const eventDatePromises = Array.from({ length: 10 }, () =>
+    prisma.eventDates.create({
+      data: {
+        date: faker.date.future(),
+      },
+    })
+  );
+
+  const [venues, eventDates] = await Promise.all([
+    Promise.all(venuePromises),
+    Promise.all(eventDatePromises),
+  ]);
+
+  // Generate fake Activities
+  const activityPromises: Activity[] = [];
+
+  for (const eventDate of eventDates) {
+    for (const venue of venues) {
+      const activity = await prisma.activity.create({
+        data: {
+          name: faker.random.word(),
+          capacity: faker.datatype.number({ min: 10, max: 200 }),
+          startTime: faker.date.future().toString(),
+          endTime: faker.date.future().toString(),
+          EventDate: { connect: { id: eventDate.id } },
+          Venues: { connect: { id: venue.id } },
+        },
+      });
+      activityPromises.push(activity);
+    }
+  }
+
+  await Promise.all(activityPromises);
+
+  // Generate fake Registrations
+  const registrationPromises: Registration[] = [];
+
+  const users = await prisma.user.findMany(); // Replace 'user' with your actual user model
+
+  for (const activity of await prisma.activity.findMany()) {
+    const randomUser = faker.helpers.arrayElement(users);
+    const registration = await prisma.registration.create({
+      data: {
+        User: { connect: { id: randomUser.id } },
+        Activity: { connect: { id: activity.id } },
+      },
+    });
+    registrationPromises.push(registration);
+  }
+
+  await Promise.all(registrationPromises);
+}
+
 async function main() {
   await Promise.all([
     createEvent(),
     createHotels(),
-    createScenario({ email: 'ticketonly@email.com', isRemote: false, includesHotel: false }),
-    createScenario({ email: 'hotel@email.com', isRemote: false, includesHotel: true }),
-    createScenario({ email: 'remote@email.com', isRemote: true, includesHotel: false }),
+    createFakeData(),
+    createScenario({ email: "ticketonly@email.com", isRemote: false, includesHotel: false }),
+    createScenario({ email: "hotel@email.com", isRemote: false, includesHotel: true }),
+    createScenario({ email: "remote@email.com", isRemote: true, includesHotel: false }),
   ]);
 }
 
