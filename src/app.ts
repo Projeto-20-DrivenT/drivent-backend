@@ -18,7 +18,7 @@ import {
   bookingRouter,
   activityRouter,
 } from "@/routers";
-import { connectRedis, redisClient } from "./config/redis";
+import { connectRedis } from "./config/redis";
 import { registrationRouter } from "./routers/registration-router";
 
 const app = express();
